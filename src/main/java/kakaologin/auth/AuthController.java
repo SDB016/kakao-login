@@ -1,5 +1,7 @@
 package kakaologin.auth;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -16,9 +18,6 @@ public class AuthController {
 
     @GetMapping("/auth/kakao/callback")
     public @ResponseBody String kakaoCallBack(String code) {
-
-        RestTemplate rt = new RestTemplate(); // http 요청을 쉽게 해주는 라이브러리
-
         //HTTPHeader 오브젝트 생성
         HttpHeaders headers = new HttpHeaders();
         headers.add("Content-type","application/x-www-form-urlencoded;charset=utf-8");
@@ -34,12 +33,23 @@ public class AuthController {
         HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest =
                 new HttpEntity<>(params, headers);
 
+        RestTemplate rt = new RestTemplate(); // http 요청을 쉽게 해주는 라이브러리
         ResponseEntity<String> response = rt.exchange(
                 "https://kauth.kakao.com/oauth/token", //response 할 주소
                 HttpMethod.POST, // 요청 방식
                 kakaoTokenRequest, //헤더 값과 바디 값
                 String.class //반환받을 타입
         );
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        OAuthToken oAuthToken = null;
+        try {
+            oAuthToken = objectMapper.readValue(response.getBody(), OAuthToken.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("access token: " + oAuthToken.getAccess_token());
 
         return "카카오 토큰 요청 완료, 토큰 요청에 대한 응답: " + response;
     }
