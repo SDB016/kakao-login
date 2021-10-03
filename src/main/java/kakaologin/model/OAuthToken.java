@@ -1,4 +1,4 @@
-package kakaologin.auth;
+package kakaologin.model;
 
 import lombok.Data;
 

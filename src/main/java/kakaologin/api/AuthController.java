@@ -1,25 +1,28 @@
-package kakaologin.auth;
+package kakaologin.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import kakaologin.domain.Member;
+import kakaologin.repository.MemberRepository;
+import kakaologin.service.AuthService;
+import kakaologin.model.OAuthToken;
 import kakaologin.model.KakaoProfile;
+import kakaologin.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.client.RestTemplate;
+
+import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+    private final MemberService memberService;
+    private final MemberRepository memberRepository;
 
     @GetMapping("/auth/kakao/callback")
     public @ResponseBody String kakaoCallBack(String code) {
@@ -32,16 +35,17 @@ public class AuthController {
         ResponseEntity<String> response = authService.postKakaoTokenRequest(reqeustUri, kakaoTokenRequest);
         OAuthToken oAuthToken = authService.mapResponseToOAuthToken(response, OAuthToken.class);
 
-        System.out.println("access token: " + oAuthToken.getAccess_token());
-
         HttpEntity<MultiValueMap<String, String>> kakaoProfileRequest = authService.createKakaoTokenRequest(oAuthToken.getAccess_token());
         ResponseEntity<String> kakaoProfileResponse = authService.postKakaoTokenRequest(requestProfileUri, kakaoProfileRequest);
         KakaoProfile kakaoProfile = authService.mapResponseToOAuthToken(kakaoProfileResponse, KakaoProfile.class);
 
-        System.out.println("이름: " + kakaoProfile.getKakaoAccount().getProfile().getNickname());
-        System.out.println("카카오 이메일: " + kakaoProfile.getKakaoAccount().getEmail());
-        System.out.println("성별: " + kakaoProfile.getKakaoAccount().getGender());
+        String userId = kakaoProfile.getKakaoAccount().getEmail() + "_" + kakaoProfile.getId();
+        String username = kakaoProfile.getKakaoAccount().getProfile().getNickname();
+        String email = kakaoProfile.getKakaoAccount().getEmail();
+        UUID garbagePassword = UUID.randomUUID();
 
-        return kakaoProfileResponse.getBody();
+        Member member = memberService.joinMember(userId, username, email, garbagePassword.toString());
+
+        return memberRepository.findByUserId(member.getUserId()).getUserId();
     }
 }
