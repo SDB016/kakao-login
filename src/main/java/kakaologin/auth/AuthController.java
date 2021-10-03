@@ -2,6 +2,7 @@ package kakaologin.auth;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kakaologin.model.KakaoProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -29,12 +30,17 @@ public class AuthController {
 
         HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest =authService.createKakaoTokenRequest(clientId, redirectUri, code);
         ResponseEntity<String> response = authService.postKakaoTokenRequest(reqeustUri, kakaoTokenRequest);
-        OAuthToken oAuthToken = authService.mapResponseToOAuthToken(response);
+        OAuthToken oAuthToken = authService.mapResponseToOAuthToken(response, OAuthToken.class);
 
         System.out.println("access token: " + oAuthToken.getAccess_token());
 
         HttpEntity<MultiValueMap<String, String>> kakaoProfileRequest = authService.createKakaoTokenRequest(oAuthToken.getAccess_token());
         ResponseEntity<String> kakaoProfileResponse = authService.postKakaoTokenRequest(requestProfileUri, kakaoProfileRequest);
+        KakaoProfile kakaoProfile = authService.mapResponseToOAuthToken(kakaoProfileResponse, KakaoProfile.class);
+
+        System.out.println("이름: " + kakaoProfile.getKakaoAccount().getProfile().getNickname());
+        System.out.println("카카오 이메일: " + kakaoProfile.getKakaoAccount().getEmail());
+        System.out.println("성별: " + kakaoProfile.getKakaoAccount().getGender());
 
         return kakaoProfileResponse.getBody();
     }

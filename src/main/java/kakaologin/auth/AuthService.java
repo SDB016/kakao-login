@@ -2,6 +2,7 @@ package kakaologin.auth;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -51,14 +52,15 @@ public class AuthService {
         return response;
     }
 
-    public OAuthToken mapResponseToOAuthToken(ResponseEntity<String> response) {
+    public <T> T mapResponseToOAuthToken(ResponseEntity<String> response, Class<T> valueType) {
         ObjectMapper objectMapper = new ObjectMapper();
-        OAuthToken oAuthToken = null;
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+        T valueClass = null;
         try {
-            oAuthToken = objectMapper.readValue(response.getBody(), OAuthToken.class);
+            valueClass = objectMapper.readValue(response.getBody(), valueType);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        return oAuthToken;
+        return valueClass;
     }
 }
