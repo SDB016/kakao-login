@@ -25,12 +25,17 @@ public class AuthController {
         String clientId = "e28f6da4a2c88321914b28137fe7d64e";
         String redirectUri = "http://localhost:8080/auth/kakao/callback";
         String reqeustUri = "https://kauth.kakao.com/oauth/token";
+        String requestProfileUri = "https://kapi.kakao.com/v2/user/me";
 
         HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest =authService.createKakaoTokenRequest(clientId, redirectUri, code);
-        OAuthToken oAuthToken = authService.postKakaoTokenRequest(reqeustUri, kakaoTokenRequest);
+        ResponseEntity<String> response = authService.postKakaoTokenRequest(reqeustUri, kakaoTokenRequest);
+        OAuthToken oAuthToken = authService.mapResponseToOAuthToken(response);
 
         System.out.println("access token: " + oAuthToken.getAccess_token());
 
-        return "카카오 토큰 요청 완료, 토큰 요청에 대한 응답: " + oAuthToken;
+        HttpEntity<MultiValueMap<String, String>> kakaoProfileRequest = authService.createKakaoTokenRequest(oAuthToken.getAccess_token());
+        ResponseEntity<String> kakaoProfileResponse = authService.postKakaoTokenRequest(requestProfileUri, kakaoProfileRequest);
+
+        return kakaoProfileResponse.getBody();
     }
 }

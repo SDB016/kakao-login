@@ -30,7 +30,17 @@ public class AuthService {
         return new HttpEntity<>(params, headers);
     }
 
-    public OAuthToken postKakaoTokenRequest(String reqeustUri, HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest) {
+    public HttpEntity<MultiValueMap<String, String>> createKakaoTokenRequest(String access_token) {
+        //HTTPHeader 오브젝트 생성
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-type","application/x-www-form-urlencoded;charset=utf-8");
+        headers.add("Authorization","Bearer "+access_token);
+
+        //HTTPHeader 를 하나의 오브젝트에 담기
+        return new HttpEntity<>(headers);
+    }
+
+    public ResponseEntity<String> postKakaoTokenRequest(String reqeustUri, HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest) {
         RestTemplate rt = new RestTemplate(); // http 요청을 쉽게 해주는 라이브러리
         ResponseEntity<String> response = rt.exchange(
                 reqeustUri, //request 할 주소
@@ -38,11 +48,10 @@ public class AuthService {
                 kakaoTokenRequest, //헤더 값과 바디 값
                 String.class //반환받을 타입
         );
-        OAuthToken oAuthToken = mapResponseToOAuthToken(response);
-        return oAuthToken;
+        return response;
     }
 
-    private OAuthToken mapResponseToOAuthToken(ResponseEntity<String> response) {
+    public OAuthToken mapResponseToOAuthToken(ResponseEntity<String> response) {
         ObjectMapper objectMapper = new ObjectMapper();
         OAuthToken oAuthToken = null;
         try {
