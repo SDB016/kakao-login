@@ -3,6 +3,7 @@ package kakaologin.service;
 import kakaologin.domain.Member;
 import kakaologin.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public Member joinMember(String userId, String username, String email, String password) {
         Member member = memberRepository.findByUserId(userId);
@@ -23,7 +25,7 @@ public class MemberService {
                 .userId(userId)
                 .username(username)
                 .email(email)
-                .password(password) //TODO password 인코딩
+                .password(passwordEncoder.encode(password))
                 .build();
         return memberRepository.save(newMember);
     }
